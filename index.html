@@ -941,5 +941,159 @@
   <button class="btn btn-outline-secondary btn-sm" id="rngLastMonth">Last Month</button>
   <button class="btn btn-outline-secondary btn-sm" id="rngYTD">YTD</button>
   <button class="btn btn-outline-secondary btn-sm" id="rngAll">All</button>
+</div><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mini Books (Rs.) – Small Business Accounting</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  :root{ --brand:#6c5ce7 }
+  body{ background:#f7fafc }
+  .card{ border:0; border-radius:1rem; box-shadow:0 8px 28px rgba(16,24,40,.08) }
+  .btn-brand{ background:var(--brand); color:#fff }
+  .btn-brand:hover{ background:#5948df; color:#fff }
+  .money{ font-variant-numeric: tabular-nums }
+  .nav-pills .nav-link.active{ background:var(--brand) }
+  .table thead th{ position:sticky; top:0; background:#fff; z-index:2 }
+  .fw-mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace }
+  .pill{ border-radius:999px; padding:.35rem .75rem; }
+  #saveBadge{ transition:opacity .25s ease; }
+  .range-chip{ font-size:.8rem; }
+</style>
+</head>
+<body>
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h1 class="h4 m-0">
+        <span id="bizNameHeading">My Business</span> — Mini Books <span class="badge text-bg-light">Rs.</span>
+      </h1>
+      <div class="text-muted small">Data is stored locally in your browser.</div>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <span id="activeRangeBadge" class="badge text-bg-light range-chip">All dates</span>
+      <button id="btnTodayTotal" class="btn btn-outline-success btn-sm" title="Show today's total"><i class="bi bi-calendar-day"></i> Today total</button>
+      <button id="btnCollectCredit" class="btn btn-outline-primary btn-sm" title="Collect Credit"><i class="bi bi-currency-dollar"></i> Collect Credit</button>
+      <span id="saveBadge" class="badge text-bg-success" style="opacity:.2"><i class="bi bi-check2-circle"></i> Saved</span>
+      <button id="btnExportData" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-down"></i> Export Data</button>
+      <label class="btn btn-outline-secondary btn-sm mb-0"><i class="bi bi-box-arrow-in-up"></i> Import Data
+        <input id="fileImportData" type="file" accept="application/json" hidden>
+      </label>
+      <button id="btnRunTests" class="btn btn-outline-primary btn-sm"><i class="bi bi-bug"></i> Run Tests</button>
+    </div>
+  </div>
+  <!-- NAV TABS -->
+<ul class="nav nav-pills mb-3" id="booksTabs">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-income">Income</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-expense">Expense</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-assets">Assets</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-liabilities">Liabilities</button></li>
+</ul>
+
+<div class="tab-content">
+  <!-- INCOME -->
+  <div class="tab-pane fade show active" id="tab-income">
+  <div class="card p-3 mb-3">
+    <h6>Income Categories</h6>
+    <p class="text-muted small mb-2">Sales, Service Income, Other Income</p>
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label class="form-label small">Payment Mode</label>
+        <select class="form-select form-select-sm">
+          <option value="cash">Cash</option>
+          <option value="bank">Bank</option>
+          <option value="credit">Credit</option>
+        </select>
+      </div>
+    </div>
+  </div>
 </div>
+
+  <!-- EXPENSE -->
+  <div class="tab-pane fade" id="tab-expense">
+  <div class="card p-3 mb-3">
+    <h6>Expense Categories</h6>
+    <p class="text-muted small mb-2">Rent, Salary, Utilities, Supplies</p>
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label class="form-label small">Payment Mode</label>
+        <select class="form-select form-select-sm">
+          <option value="cash">Cash</option>
+          <option value="bank">Bank</option>
+          <option value="credit">Credit</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- ASSETS -->
+  <div class="tab-pane fade" id="tab-assets">
+    <div class="card p-3 mb-3">
+      <h6>Current Assets</h6>
+      <ul class="small mb-3">
+        <li>Cash in Hand</li>
+        <li>Bank Balance</li>
+        <li>Accounts Receivable</li>
+        <li>Inventory / Stock</li>
+        <li>Prepaid Expenses</li>
+      </ul>
+      <h6 class="mt-3">Fixed Assets</h6>
+      <ul class="small mb-0">
+        <li>Furniture & Equipment</li>
+        <li>Computer / Printer</li>
+        <li>Machinery</li>
+        <li>Vehicle</li>
+        <li>Building</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LIABILITIES -->
+  <div class="tab-pane fade" id="tab-liabilities">
+    <div class="card p-3 mb-3">
+      <h6>Current Liabilities</h6>
+      <ul class="small mb-3">
+        <li>Accounts Payable</li>
+        <li>Outstanding Rent</li>
+        <li>Short-term Loan</li>
+        <li>Tax Payable</li>
+      </ul>
+      <h6 class="mt-3">Long-term Liabilities</h6>
+      <ul class="small mb-0">
+        <li>Bank Loan</li>
+        <li>Loan from Owner</li>
+        <li>Mortgage / Long-term Debt</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// Example: Collect Credit functionality
+document.getElementById('btnCollectCredit').addEventListener('click', function(){
+  const amount = prompt('Enter amount collected:');
+  if(!amount || isNaN(amount)) return alert('Invalid amount');
+  const mode = prompt('Payment Mode: cash, bank');
+  if(mode !== 'cash' && mode !== 'bank') return alert('Invalid payment mode');
+
+  // Update Assets
+  let assets = JSON.parse(localStorage.getItem('assets')) || {
+    cash: 0, bank: 0, accountsReceivable: 0
+  };
+  assets.accountsReceivable -= parseFloat(amount);
+  if(mode === 'cash') assets.cash += parseFloat(amount);
+  else assets.bank += parseFloat(amount);
+
+  localStorage.setItem('assets', JSON.stringify(assets));
+  alert(`Collected Rs.${amount} via ${mode}`);
+  location.reload();
+});
+</script>
+
+</body>
+</html>
 
