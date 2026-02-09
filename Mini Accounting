@@ -1,0 +1,159 @@
+import sqlite3
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
+from datetime import datetime
+
+# --- DATABASE CORE ---
+def init_db():
+    conn = sqlite3.connect('universal_accounting.db')
+    c = conn.cursor()
+    # Unified Ledger for Double Entry
+    c.execute('''CREATE TABLE IF NOT EXISTS ledger 
+                 (id INTEGER PRIMARY KEY, date_ad TEXT, date_bs TEXT, 
+                  description TEXT, debit_acc TEXT, credit_acc TEXT, 
+                  amount REAL, mode TEXT, category TEXT)''')
+    # Settings table for Company Name
+    c.execute('''CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)''')
+    c.execute("INSERT OR IGNORE INTO settings VALUES ('company_name', 'DREAMLAND COMPUTER INSTITUTE')")
+    conn.commit()
+    conn.close()
+
+class UniversalAccountingApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Universal BizAccount Pro")
+        self.root.geometry("1000x700")
+        
+        # Load Company Name
+        self.company_name = self.get_setting('company_name')
+
+        # --- THEME & STYLES ---
+        style = ttk.Style()
+        style.configure("Header.TLabel", font=("Arial", 24, "bold"), foreground="#2c3e50")
+        style.configure("TButton", font=("Arial", 10))
+
+        # --- TOP HEADER (EDITABLE) ---
+        self.header_frame = tk.Frame(root, bg="#f1f1f1", pady=20)
+        self.header_frame.pack(fill="x")
+        
+        self.lbl_company = tk.Label(self.header_frame, text=self.company_name, 
+                                   font=("Verdana", 28, "bold"), bg="#f1f1f1", fg="#1a237e")
+        self.lbl_company.pack()
+        
+        btn_edit_name = ttk.Button(self.header_frame, text="Change Company Name", command=self.change_name)
+        btn_edit_name.pack(pady=5)
+
+        # --- NAVIGATION TABS ---
+        self.tabs = ttk.Notebook(root)
+        self.tab1 = ttk.Frame(self.tabs) # Transaction Entry
+        self.tab2 = ttk.Frame(self.tabs) # Reports
+        self.tab3 = ttk.Frame(self.tabs) # Chart of Accounts
+        
+        self.tabs.add(self.tab1, text=" Daily Transactions ")
+        self.tabs.add(self.tab2, text=" Financial Reports (BS/PL) ")
+        self.tabs.add(self.tab3, text=" Settings & Info ")
+        self.tabs.pack(expand=1, fill="both")
+
+        self.setup_entry_ui()
+        self.setup_report_ui()
+
+    # --- SETTINGS LOGIC ---
+    def get_setting(self, key):
+        conn = sqlite3.connect('universal_accounting.db')
+        res = conn.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
+        conn.close()
+        return res[0] if res else "My Business"
+
+    def change_name(self):
+        new_name = simpledialog.askstring("Input", "Enter New Company/Institute Name:")
+        if new_name:
+            conn = sqlite3.connect('universal_accounting.db')
+            conn.execute("UPDATE settings SET value=? WHERE key='company_name'", (new_name,))
+            conn.commit()
+            conn.close()
+            self.lbl_company.config(text=new_name.upper())
+
+    # --- TRANSACTION UI ---
+    def setup_entry_ui(self):
+        frame = ttk.LabelFrame(self.tab1, text=" Double Entry Input ")
+        frame.pack(pady=30, padx=50, fill="x")
+
+        # Labels & Inputs
+        ttk.Label(frame, text="Description:").grid(row=0, column=0, padx=10, pady=10)
+        self.ent_desc = ttk.Entry(frame, width=40)
+        self.ent_desc.grid(row=0, column=1, columnspan=3)
+
+        ttk.Label(frame, text="Amount:").grid(row=1, column=0, padx=10, pady=10)
+        self.ent_amt = ttk.Entry(frame)
+        self.ent_amt.grid(row=1, column=1)
+
+        ttk.Label(frame, text="Payment Mode:").grid(row=1, column=2)
+        self.combo_mode = ttk.Combobox(frame, values=["Cash", "Bank", "Credit"])
+        self.combo_mode.grid(row=1, column=3)
+
+        # Debit/Credit Selection
+        ttk.Label(frame, text="Debit (Asset/Expense):").grid(row=2, column=0, pady=10)
+        self.debit_cat = ttk.Combobox(frame, values=["Cash", "Bank", "Equipment", "Salary", "Rent", "Ink/Paper", "Purchases"])
+        self.debit_cat.grid(row=2, column=1)
+
+        ttk.Label(frame, text="Credit (Income/Liability/Capital):").grid(row=2, column=2, pady=10)
+        self.credit_cat = ttk.Combobox(frame, values=["Sales Income", "Tuition Fees", "Owner Capital", "Bank Loan", "Accounts Payable"])
+        self.credit_cat.grid(row=2, column=3)
+
+        btn_save = tk.Button(frame, text="POST TRANSACTION", bg="#2e7d32", fg="white", 
+                             font=("Arial", 12, "bold"), command=self.save_transaction)
+        btn_save.grid(row=3, columnspan=4, pady=20)
+
+    def save_transaction(self):
+        try:
+            conn = sqlite3.connect('universal_accounting.db')
+            c = conn.cursor()
+            d_ad = datetime.now().strftime("%Y-%m-%d")
+            # Logic for Entry
+            c.execute('''INSERT INTO ledger (date_ad, description, debit_acc, credit_acc, amount, mode) 
+                         VALUES (?,?,?,?,?,?)''', 
+                      (d_ad, self.ent_desc.get(), self.debit_cat.get(), self.credit_cat.get(), 
+                       float(self.ent_amt.get()), self.combo_mode.get()))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Success", "Record Saved Successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Invalid Input: {e}")
+
+    # --- REPORTS UI ---
+    def setup_report_ui(self):
+        btn_refresh = ttk.Button(self.tab2, text="Generate Trial Balance & P&L", command=self.generate_reports)
+        btn_refresh.pack(pady=10)
+        
+        self.report_box = tk.Text(self.tab2, font=("Courier New", 11), bg="#fafafa")
+        self.report_box.pack(expand=1, fill="both", padx=20, pady=10)
+
+    def generate_reports(self):
+        conn = sqlite3.connect('universal_accounting.db')
+        c = conn.cursor()
+        
+        # Calculate Debits
+        c.execute("SELECT debit_acc, SUM(amount) FROM ledger GROUP BY debit_acc")
+        debits = dict(c.fetchall())
+        
+        # Calculate Credits
+        c.execute("SELECT credit_acc, SUM(amount) FROM ledger GROUP BY credit_acc")
+        credits = dict(c.fetchall())
+        
+        self.report_box.delete('1.0', tk.END)
+        self.report_box.insert(tk.END, f"{'ACCOUNT CATEGORY':<25} | {'DEBIT':<12} | {'CREDIT':<12}\n")
+        self.report_box.insert(tk.END, "="*55 + "\n")
+        
+        all_accounts = set(debits.keys()) | set(credits.keys())
+        for acc in sorted(all_accounts):
+            d = debits.get(acc, 0)
+            cr = credits.get(acc, 0)
+            self.report_box.insert(tk.END, f"{acc:<25} | {d:<12.2f} | {cr:<12.2f}\n")
+        
+        conn.close()
+
+if __name__ == "__main__":
+    init_db()
+    root = tk.Tk()
+    app = UniversalAccountingApp(root)
+    root.mainloop()
